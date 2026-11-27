@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@pixeltocode/schema": "workspace:*",
     "@pixeltocode/tokens": "workspace:*",
+    "@radix-ui/react-dropdown-menu": "2.2.1",
     "@radix-ui/react-slot": "1.2.3",
     "@radix-ui/react-tabs": "1.1.13",
     "class-variance-authority": "0.7.1",
@@ -22,9 +24,12 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tailwind-merge": "3.3.1",
-    "zod": "4.1.12"
+    "zod": "4.1.12",
+    "zustand": "5.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.0",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/node": "22.20.7",
     "@types/react": "19.3.3",
