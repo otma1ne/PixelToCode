@@ -75,7 +75,8 @@ test("stops at the daily limit and says when it resets", async ({ page }) => {
 test("starts the generation from the landing page", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Invite members card" }).click();
-  await page.getByLabel("Framework").selectOption("angular");
+  await page.getByRole("combobox", { name: "Framework" }).click();
+  await page.getByRole("option", { name: "Angular", exact: true }).click();
   await page.getByRole("button", { name: "Generate", exact: true }).click();
   await expect(page).toHaveURL(/\/app$/);
   await expect(page.getByRole("heading", { level: 2, name: "InviteMembersCard" })).toBeVisible();

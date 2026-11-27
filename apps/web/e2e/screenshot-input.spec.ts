@@ -6,8 +6,10 @@ import { expect, test, type Page } from "@playwright/test";
 const PNG = readFileSync(join(__dirname, "../public/examples/invite-members.png"));
 const png = (name = "card.png") => ({ name, mimeType: "image/png", buffer: PNG });
 
-async function expectNoAxeViolations(page: Page) {
-  const results = await new AxeBuilder({ page }).analyze();
+async function expectNoAxeViolations(page: Page, include?: string) {
+  const builder = new AxeBuilder({ page });
+  if (include) builder.include(include);
+  const results = await builder.analyze();
   expect(
     results.violations.map(
       (v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(" ")).join(", ")})`,
@@ -35,6 +37,12 @@ async function sendFile(page: Page, kind: "paste" | "drop", selector?: string) {
   );
 }
 
+/** Opens one of the styled selects and picks an option, with the keyboard-accessible listbox roles. */
+async function pick(page: Page, label: string, option: string) {
+  await page.getByRole("combobox", { name: label }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => sessionStorage.clear());
@@ -50,8 +58,8 @@ test.describe("landing upload box", () => {
     await expect(page.getByText("pricing-table.png")).toBeVisible();
     await expect(page.getByText("1280 × 1232 · 89 KB")).toBeVisible();
 
-    await page.getByLabel("Framework").selectOption("vue");
-    await page.getByLabel("Styling").selectOption("tailwind");
+    await pick(page, "Framework", "Vue");
+    await pick(page, "Styling", "Tailwind");
     await generate.click();
 
     await expect(page).toHaveURL(/\/app$/);
@@ -94,15 +102,48 @@ test.describe("landing upload box", () => {
 
   test("only lists styles that work with the framework", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Styling").selectOption("scss");
-    await page.getByLabel("Framework").selectOption("html");
-    await expect(page.getByLabel("Styling")).toHaveValue("css");
-    await expect(page.getByLabel("Styling").locator("option")).toHaveText(["CSS", "Tailwind"]);
+    await pick(page, "Styling", "SCSS");
+    await pick(page, "Framework", "HTML");
+    const styling = page.getByRole("combobox", { name: "Styling" });
+    await expect(styling).toHaveText("CSS");
+    await styling.click();
+    await expect(page.getByRole("option")).toHaveText(["CSS", "Tailwind"]);
+    await page.keyboard.press("Escape");
   });
 
   test("has no accessibility violations", async ({ page }) => {
     await page.goto("/");
     await expectNoAxeViolations(page);
+    await page.getByRole("combobox", { name: "Framework" }).click();
+    await expect(page.getByRole("listbox")).toBeVisible();
+    // While the list is open the rest of the page is hidden from assistive tech, so check the list itself.
+    await expectNoAxeViolations(page, '[role="listbox"]');
+  });
+
+  test("selects work with the keyboard", async ({ page }) => {
+    await page.goto("/");
+    const framework = page.getByRole("combobox", { name: "Framework" });
+    await framework.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("option", { name: "Angular", exact: true })).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("option", { name: "React", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(framework).toHaveText("React");
+    await expect(framework).toBeFocused();
+  });
+
+  test("shows the pointer on interactive elements", async ({ page }) => {
+    await page.goto("/");
+    const cursor = (locator: ReturnType<Page["locator"]>) =>
+      locator.evaluate((el) => getComputedStyle(el).cursor);
+    expect(await cursor(page.getByRole("combobox", { name: "Framework" }))).toBe("pointer");
+    expect(await cursor(page.getByRole("button", { name: "Instructions" }))).toBe("pointer");
+    expect(await cursor(page.getByRole("button", { name: "Theme" }))).toBe("pointer");
+    expect(await cursor(page.getByRole("link", { name: "Open app" }))).toBe("pointer");
+    expect(await cursor(page.getByRole("button", { name: "Generate", exact: true }))).toBe(
+      "not-allowed",
+    );
   });
 });
 

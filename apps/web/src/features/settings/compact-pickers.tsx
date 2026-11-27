@@ -1,45 +1,36 @@
 "use client";
 
-import {
-  FRAMEWORK_LABELS,
-  FRAMEWORKS,
-  STYLE_LABELS,
-  supportedStyles,
-  type Framework,
-  type StyleSystem,
-} from "@pixeltocode/schema";
+import { FRAMEWORK_LABELS, FRAMEWORKS, STYLE_LABELS, supportedStyles } from "@pixeltocode/schema";
 import { Select } from "@/components/ui/select";
 import { useWorkspace } from "@/features/workspace/store";
+
+const FRAMEWORK_OPTIONS = FRAMEWORKS.map((value) => ({ value, label: FRAMEWORK_LABELS[value] }));
 
 /** Framework and styling as two selects, for the landing upload box. Only compatible styles are listed. */
 export function CompactPickers() {
   const settings = useWorkspace((s) => s.settings);
   const setFramework = useWorkspace((s) => s.setFramework);
   const setStyle = useWorkspace((s) => s.setStyle);
+  const styleOptions = supportedStyles(settings.framework).map((value) => ({
+    value,
+    label: STYLE_LABELS[value],
+  }));
   return (
     <>
       <Select
-        aria-label="Framework"
+        label="Framework"
+        className="w-[112px]"
         value={settings.framework}
-        onChange={(e) => setFramework(e.target.value as Framework)}
-      >
-        {FRAMEWORKS.map((fw) => (
-          <option key={fw} value={fw}>
-            {FRAMEWORK_LABELS[fw]}
-          </option>
-        ))}
-      </Select>
+        options={FRAMEWORK_OPTIONS}
+        onValueChange={setFramework}
+      />
       <Select
-        aria-label="Styling"
+        label="Styling"
+        className="w-[104px]"
         value={settings.style}
-        onChange={(e) => setStyle(e.target.value as StyleSystem)}
-      >
-        {supportedStyles(settings.framework).map((st) => (
-          <option key={st} value={st}>
-            {STYLE_LABELS[st]}
-          </option>
-        ))}
-      </Select>
+        options={styleOptions}
+        onValueChange={setStyle}
+      />
     </>
   );
 }
