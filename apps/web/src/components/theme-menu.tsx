@@ -40,7 +40,7 @@ export function ThemeMenu() {
               <DropdownMenu.RadioItem
                 key={value}
                 value={value}
-                className="flex h-control cursor-default items-center gap-2 rounded-sm px-2 text-body-sm text-ink-2 outline-none data-[highlighted]:bg-hover data-[highlighted]:text-ink"
+                className="flex h-control items-center gap-2 rounded-sm px-2 text-body-sm text-ink-2 outline-none data-[highlighted]:bg-hover data-[highlighted]:text-ink"
               >
                 <Icon aria-hidden strokeWidth={1.5} className="size-4 text-muted" />
                 {label}

@@ -26,6 +26,32 @@
     background: var(--accent-soft);
   }
 
+  /* Everything that reacts to a click shows the pointer; disabled controls say they are not available. */
+  a[href],
+  button,
+  select,
+  summary,
+  label[for],
+  [role="button"],
+  [role="tab"],
+  [role="option"],
+  [role="combobox"],
+  [role="menuitem"],
+  [role="menuitemradio"],
+  [role="menuitemcheckbox"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="file"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     outline: 1.5px solid var(--accent-ink);
     outline-offset: 1px;
