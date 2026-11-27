@@ -1,0 +1,18 @@
+{
+  "name": "@pixeltocode/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PixelToCode design tokens: tokens.json is the source, tokens.css and theme.css are generated from it.",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./tokens.json": "./tokens.json",
+    "./theme.css": "./theme.css"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs --check",
+    "lint": "node scripts/build.mjs --check",
+    "typecheck": "node scripts/build.mjs --check"
+  }
+}

@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@import "@pixeltocode/tokens/theme.css";
+@import "@pixeltocode/tokens/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), var(--font-sans-stack);
+  --font-mono: var(--font-geist-mono), var(--font-mono-stack);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-size: var(--text-body-size);
+    line-height: var(--text-body-line-height);
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+
+  :focus-visible {
+    outline: 1.5px solid var(--accent-ink);
+    outline-offset: 1px;
+  }
+
+  code,
+  kbd,
+  pre {
+    font-family: var(--font-mono);
+    font-variant-ligatures: none;
+    tab-size: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

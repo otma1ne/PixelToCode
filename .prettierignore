@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+coverage
+test-results
+playwright-report
+pnpm-lock.yaml
+next-env.d.ts
+# Generated from tokens.json
+packages/tokens/tokens.css
+packages/tokens/theme.css
+packages/tokens/tokens.json

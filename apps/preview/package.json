@@ -1,0 +1,32 @@
+{
+  "name": "preview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated sandbox that compiles and renders generated components. Served from its own domain.",
+  "scripts": {
+    "dev": "vite --port 4100",
+    "build": "vite build",
+    "build:spike": "vite build --mode spike",
+    "preview": "vite preview --port 4100",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@angular/common": "22.2.6",
+    "@angular/compiler": "22.2.6",
+    "@angular/core": "22.2.6",
+    "@angular/platform-browser": "22.2.6",
+    "@pixeltocode/schema": "workspace:*",
+    "rxjs": "7.8.2",
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "22.20.7",
+    "vite": "7.3.8",
+    "vitest": "3.2.4"
+  }
+}
