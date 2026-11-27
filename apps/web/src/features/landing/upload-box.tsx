@@ -29,7 +29,10 @@ export function UploadBox() {
 
   useEffect(() => hydrateWorkspace(), []);
   usePasteScreenshot(onFile);
-  const go = () => router.push("/app");
+  const go = () => {
+    void workspace.generate();
+    router.push("/app");
+  };
   useModEnter(go, ready);
 
   return (

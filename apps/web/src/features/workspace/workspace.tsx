@@ -1,6 +1,6 @@
 "use client";
 
-import { FRAMEWORK_LABELS } from "@pixeltocode/schema";
+import { FRAMEWORK_LABELS, STYLE_LABELS } from "@pixeltocode/schema";
 import { Download } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -8,7 +8,9 @@ import { LogoMark } from "@/components/brand/logo";
 import { ThemeMenu } from "@/components/theme-menu";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
+import { useOnline } from "@/lib/use-online";
 import { useModEnter, usePasteScreenshot, useScreenshotFile } from "@/features/screenshot/hooks";
 import { canGenerate, projectName } from "./model";
 import { ScreenshotColumn } from "./screenshot-column";
@@ -22,20 +24,13 @@ export function Workspace() {
   const workspace = useWorkspace();
   const onFile = useScreenshotFile();
   const [mobileView, setMobileView] = useState<MobileView>("chat");
-  // The notice belongs to the screenshot and settings it was requested for; any change hides it.
-  const requestKey = JSON.stringify([
-    workspace.screenshot?.src.length,
-    workspace.screenshot?.name,
-    workspace.settings,
-  ]);
-  const [requestedFor, setRequestedFor] = useState<string | null>(null);
-  const generateRequested = requestedFor === requestKey;
+  const online = useOnline();
 
   useEffect(() => hydrateWorkspace(), []);
   usePasteScreenshot(onFile);
-  const ready = canGenerate(workspace);
-  const requestGenerate = () => setRequestedFor(requestKey);
-  useModEnter(requestGenerate, ready);
+  const ready = canGenerate(workspace) && online;
+  useModEnter(() => void workspace.generate(), ready);
+  const { result, request } = workspace;
 
   return (
     <div className="grid h-dvh grid-rows-[52px_minmax(0,1fr)] bg-bg max-[720px]:grid-rows-[52px_44px_minmax(0,1fr)]">
@@ -48,11 +43,16 @@ export function Workspace() {
         </span>
         <h1 className="flex min-w-0 items-center gap-2 text-label max-[720px]:hidden">
           <span className="truncate">{projectName(workspace)}</span>
+          {result && request ? (
+            <Badge className="text-ink-2">
+              {FRAMEWORK_LABELS[request.framework]} · {STYLE_LABELS[request.style]}
+            </Badge>
+          ) : null}
         </h1>
         <div className="ml-auto flex items-center gap-1.5">
           <ThemeMenu />
-          {/* Outline until there is a result: lime stays on the one primary action of the view. */}
-          <Button disabled title="Export is available after a generation">
+          {/* Export arrives with the export phase; neutral until then so lime marks one action. */}
+          <Button disabled title="Export is not available yet">
             <Download aria-hidden strokeWidth={1.5} />
             <span className="max-[720px]:hidden">Export</span>
           </Button>
@@ -81,13 +81,7 @@ export function Workspace() {
             mobileView === "result" && "max-[720px]:hidden",
           )}
         >
-          <ScreenshotColumn
-            onFile={onFile}
-            ready={ready}
-            generateRequested={generateRequested}
-            onGenerate={requestGenerate}
-            frameworkLabel={FRAMEWORK_LABELS[workspace.settings.framework]}
-          />
+          <ScreenshotColumn onFile={onFile} />
         </aside>
         <section
           aria-label="Result"

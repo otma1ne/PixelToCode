@@ -56,7 +56,6 @@ test.describe("landing upload box", () => {
 
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByRole("img", { name: "Screenshot: pricing-table.png" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Ready to generate" })).toBeVisible();
     await expect(
       page.getByRole("group", { name: "Framework" }).getByRole("button", { name: "Vue" }),
     ).toHaveAttribute("aria-pressed", "true");
@@ -162,13 +161,6 @@ test.describe("app workspace", () => {
       page.getByRole("group", { name: "Framework" }).getByRole("button", { name: "React" }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByLabel(/Instructions/)).toHaveValue("Keep the original spacing.");
-  });
-
-  test("says plainly that generation is not connected yet", async ({ page }) => {
-    await page.goto("/app");
-    await page.getByTestId("screenshot-input").setInputFiles(png());
-    await page.getByRole("button", { name: /^Generate Angular component/ }).click();
-    await expect(page.getByText("Generation is not connected yet")).toBeVisible();
   });
 
   test("switches theme from the menu", async ({ page }) => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   canGenerate,
+  generationEvent,
+  generationStarted,
   frameworkChanged,
   INITIAL_WORKSPACE,
   instructionsChanged,
@@ -69,5 +71,58 @@ describe("settings transitions", () => {
   it("caps instructions at 500 characters", () => {
     const next = instructionsChanged(INITIAL_WORKSPACE, "a".repeat(600));
     expect(next.settings.instructions).toHaveLength(500);
+  });
+});
+
+describe("generation transitions", () => {
+  const uploaded = screenshotAccepted(INITIAL_WORKSPACE, shot);
+  const result = {
+    componentName: "InviteMembersCard",
+    summary: "Card",
+    entry: "src/app/invite-members-card/invite-members-card.component.ts",
+    files: [{ path: "src/app/invite-members-card/invite-members-card.component.ts", content: "" }],
+    subcomponents: [],
+    dependencies: [],
+    removedDependencies: [],
+    assumptions: [],
+    durationMs: 4300,
+    usage: { inputTokens: 1, cachedInputTokens: 0, outputTokens: 1, costUsd: 0 },
+  };
+
+  it("records the request, then each step with its time, then the result", () => {
+    let s = generationStarted(uploaded);
+    expect(s.phase).toBe("generating");
+    expect(s.request).toEqual(uploaded.settings);
+    expect(canGenerate(s)).toBe(false);
+    s = generationEvent(s, { type: "step", step: "checks", status: "running" });
+    s = generationEvent(s, { type: "step", step: "checks", status: "done", ms: 12 });
+    s = generationEvent(s, { type: "step", step: "image", status: "running" });
+    expect(s.steps).toEqual([
+      { step: "checks", status: "done", ms: 12 },
+      { step: "image", status: "running", ms: undefined },
+    ]);
+    s = generationEvent(s, { type: "result", result });
+    expect(s.phase).toBe("ready");
+    expect(projectName(s)).toBe("InviteMembersCard");
+  });
+
+  it("separates limits from failures", () => {
+    const started = generationStarted(uploaded);
+    expect(
+      generationEvent(started, { type: "error", code: "limit_reached", message: "m", resetAt: "x" })
+        .phase,
+    ).toBe("limitReached");
+    expect(
+      generationEvent(started, { type: "error", code: "model_timeout", message: "m" }).phase,
+    ).toBe("failed");
+  });
+
+  it("ignores a new screenshot during a generation, and clears the result after", () => {
+    const started = generationStarted(uploaded);
+    expect(screenshotAccepted(started, { ...shot, name: "other.png" })).toBe(started);
+    const ready = generationEvent(started, { type: "result", result });
+    const next = screenshotAccepted(ready, { ...shot, name: "other.png" });
+    expect(next.result).toBeNull();
+    expect(next.phase).toBe("uploaded");
   });
 });

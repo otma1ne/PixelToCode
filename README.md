@@ -35,6 +35,7 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` when a phase needs server 
 | `pnpm build`                              | Builds every package                                      |
 | `pnpm --filter preview test:e2e`          | Compiles and renders examples in the sandbox (Playwright) |
 | `pnpm --filter web test:e2e`              | Screenshot input, settings and accessibility (Playwright) |
+| `pnpm --filter web measure`               | Real cost and time of a generation (uses your OpenAI key) |
 | `pnpm --filter @pixeltocode/tokens build` | Regenerates the CSS after editing `tokens.json`           |
 
 ## Web app
@@ -43,6 +44,19 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` when a phase needs server 
 - A screenshot can be dropped, pasted or picked. Its type is checked from its first bytes (PNG, JPEG or WebP), and files over 5 MB are refused.
 - The workspace state lives in a Zustand store (`src/features/workspace`). Its transitions are pure functions with unit tests. The screenshot and settings are kept in `sessionStorage` for the current tab only and are never sent anywhere until generation exists.
 - Plain HTML supports CSS and Tailwind; SCSS is not offered for it.
+
+## Generation
+
+`POST /api/generate` takes the screenshot and settings as multipart form data and answers with server-sent events: one `step` event per real stage (limits, image, model, validation, normalisation), then a `result` or an `error` with a typed code.
+
+- **Checks**: the request origin, the visitor's quota (5 a day and 3 a minute by default, keyed by a salted hash of the IP) and the monthly budget. Generation stops before a call could take the month over `MONTHLY_BUDGET_USD` (18 by default). Keep a hard limit in the OpenAI dashboard as well.
+- **Image**: type checked from its bytes, 5 MB at most, re-encoded with sharp at 2048 px on the longest side, which also drops metadata. Nothing is written to disk.
+- **Model**: OpenAI Responses API with a strict JSON schema (`ModelOutput` in `packages/schema`), `store: false`, a timeout and an output token cap. The model and its prices come from the environment.
+- **Validation**: the answer is parsed with Zod, then each framework adapter checks paths, the entry file, at most 12 files, and keeps only allow-listed dependencies at pinned versions. An unusable answer gets one retry.
+- **Cost**: computed from the tokens OpenAI reports for each call and added to the monthly counter, retries included.
+- **Logs**: one JSON line per generation with status, duration, tokens and cost. Never the image, the code or the instructions.
+
+Set the variables in `apps/web/.env.local` (see `.env.example`). Without Upstash, local development keeps limits in memory; production requires Redis. Tests never call OpenAI: unit and route tests use a fake provider and MSW, and the end-to-end tests run against `e2e/fake-openai.mjs`.
 
 ## Preview sandbox
 
