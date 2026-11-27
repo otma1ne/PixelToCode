@@ -34,7 +34,15 @@ Copy `apps/web/.env.example` to `apps/web/.env.local` when a phase needs server 
 | `pnpm test`                               | Unit tests (Vitest)                                       |
 | `pnpm build`                              | Builds every package                                      |
 | `pnpm --filter preview test:e2e`          | Compiles and renders examples in the sandbox (Playwright) |
+| `pnpm --filter web test:e2e`              | Screenshot input, settings and accessibility (Playwright) |
 | `pnpm --filter @pixeltocode/tokens build` | Regenerates the CSS after editing `tokens.json`           |
+
+## Web app
+
+- `/` is the landing page with the upload box; `/app` is the workspace; `/design` shows the tokens and base components.
+- A screenshot can be dropped, pasted or picked. Its type is checked from its first bytes (PNG, JPEG or WebP), and files over 5 MB are refused.
+- The workspace state lives in a Zustand store (`src/features/workspace`). Its transitions are pure functions with unit tests. The screenshot and settings are kept in `sessionStorage` for the current tab only and are never sent anywhere until generation exists.
+- Plain HTML supports CSS and Tailwind; SCSS is not offered for it.
 
 ## Preview sandbox
 
